@@ -7,12 +7,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/info")
 public class Info {
 	
+	private static final String TEXT_PLAIN = MediaType.TEXT_PLAIN;
 	private static final String TEXT_XML = MediaType.TEXT_XML;
 	private static final String APPLICATION_XML = MediaType.APPLICATION_XML;
 	private static final String APPLICATION_JSON = MediaType.APPLICATION_JSON;
@@ -24,11 +27,32 @@ public class Info {
 		} else if ("POST".equals(method)) {
 			return Response.status(Response.Status.OK).entity(textType).build();
 		} else {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing XML." + "\n").build();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in processing request. Unknown method: " + method + "\n").build();
 		}
 		
 	}
 		
+	@GET
+	@Produces(TEXT_PLAIN)
+	public Response processGET(String body, @Context HttpHeaders headers) {
+		return processText("", "", "GET", body);	
+	}
+	
+	@POST
+	@Consumes(TEXT_PLAIN)
+	@Produces(TEXT_PLAIN)
+	public Response processPOSTTextPlain(String body, @Context HttpHeaders headers) {
+		return processText("", "", "POST", body);	
+	}
+	
+	public Response processText(String text, String message, String method, String body) {
+		
+		String textType = "Text (" + TEXT_PLAIN + ")";
+		
+		return process(method, textType);
+		
+	}
+	
 	@Path("{text}")
 	@POST
 	@Consumes(TEXT_XML)

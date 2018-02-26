@@ -19,10 +19,24 @@ import javax.ws.rs.core.Response;
 @Path("/hello")
 public class Hello {
 	
+	private static final String TEXT_PLAIN = MediaType.TEXT_PLAIN;
 	private static final String TEXT_XML = MediaType.TEXT_XML;
 	private static final String APPLICATION_XML = MediaType.APPLICATION_XML;
 	private static final String APPLICATION_JSON = MediaType.APPLICATION_JSON;
 
+	@GET
+	@Produces(TEXT_PLAIN)
+	public Response processGET(String body, @Context HttpHeaders headers) {
+		return process("", "", "GET", body, headers);	
+	}
+	
+	@POST
+	@Consumes(TEXT_PLAIN)
+	@Produces(TEXT_PLAIN)
+	public Response processPOSTTextPlain(String body, @Context HttpHeaders headers) {
+		return process("", "", "POST", body, headers);	
+	}
+	
 	@Path("{text}")
 	@POST
 	@Consumes(TEXT_XML)
