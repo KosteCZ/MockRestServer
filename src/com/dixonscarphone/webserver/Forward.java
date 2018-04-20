@@ -38,6 +38,8 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 /**
  * Sending back messages with exactly same media format as they were received.
  * Plus: headers (and cookies?).
@@ -143,30 +145,47 @@ public class Forward {
 	
 	private Response processRequest(String text, String body, String method) {
 		
+		String sourceID = null;
 		String output = null;
 		
-		if ("GET".equals(method)) {
-			output = callReceiver(text);
-		} else if ("POST".equals(method)) {
-			output = callReceiver(body);
+		try {
+			
+			if ("GET".equals(method)) {
+				sourceID = identifySourceID(text);
+				output = callReceiver(sourceID, text);
+			} else if ("POST".equals(method)) {
+				sourceID = identifySourceID(body);
+				output = callReceiver(sourceID, body);
+			}
+		
+		} catch (Exception e) {
+			
+			LOGGER.log(Level.ERROR, "ERROR: " + e.getMessage());
+			output = "ERROR: " + e.getMessage();
+			
 		}
 		
 		if ("GET".equals(method) || ("POST".equals(method))) {
+			
+			if (sourceID != null) {
+				DB.insertIntoTableMessage("forward", "200", "SourceID: " + sourceID.trim());
+			} else {
+				DB.insertIntoTableMessage("forward", "200");
+			}
+			
 			return Response.status(Response.Status.OK).entity(output).build();
+			
 		} else {
+			
+			DB.insertIntoTableMessage("forward", "500");
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing." + "\n").build();
+			
 		}
 		
 	}
 	
-	private String callReceiver(String message) {
+	private String callReceiver(String sourceID, String message) throws Exception {
 		
-		try {
-			
-			String sourceID = identifySourceID(message);
-		
-			//CredentialsItem credentialsItem = loadCredentials(message);
-			
 			try {
 				List<List<String>> listOfReceivers = loadReceivers();
 				
@@ -217,13 +236,6 @@ public class Forward {
 				return useHttpClientPOST(credentialsItem, message);
 			
 			}
-		
-		} catch (Exception e) {
-			
-			LOGGER.log(Level.ERROR, "ERROR: " + e.getMessage());
-			return "ERROR: " + e.getMessage();
-			
-		}
 		
 	}
 	

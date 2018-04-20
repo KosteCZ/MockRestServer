@@ -15,6 +15,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 @Path("/timeout")
 public class Timeout {
 	
@@ -130,11 +132,13 @@ public class Timeout {
 		try {
 			Thread.sleep(Math.round(sleepingTime));
 		} catch (InterruptedException e) {
+			DB.insertIntoTableMessage("timeout", "500");
 			Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		Date dateEnd = new Date();
 		sb.append(DATE_FORMAT.format(dateEnd) + " End." + "\n");
 		
+		DB.insertIntoTableMessage("timeout", "200", "Timeout: " + sleepingTime);
 		return Response.status(Response.Status.OK).entity(sb.toString()).build();
 		
 	}

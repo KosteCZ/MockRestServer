@@ -12,6 +12,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 @Path("/info")
 public class Info {
 	
@@ -23,11 +25,14 @@ public class Info {
 	public Response process(String method, String textType) {
 		
 		if ("GET".equals(method)) {
+			DB.insertIntoTableMessage("info", "200");
 			return Response.status(Response.Status.OK).entity(textType).build();
 		} else if ("POST".equals(method)) {
+			DB.insertIntoTableMessage("info", "200");
 			return Response.status(Response.Status.OK).entity(textType).build();
 		} else {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in processing request. Unknown method: " + method + "\n").build();
+			DB.insertIntoTableMessage("info", "400");
+			return Response.status(Response.Status.BAD_REQUEST).entity("400 NOK > Error in processing request. Unknown method: " + method + "\n").build();
 		}
 		
 	}

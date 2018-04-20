@@ -1,8 +1,8 @@
 package com.dixonscarphone.webserver;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -16,16 +16,21 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
+
 import com.dixonscarphone.webserver.shared.DB;
 
-@Path("/hello")
-public class Hello {
+@Path("/db")
+public class DBWebService {
 	
 	private static final String TEXT_PLAIN = MediaType.TEXT_PLAIN;
 	private static final String TEXT_XML = MediaType.TEXT_XML;
 	private static final String APPLICATION_XML = MediaType.APPLICATION_XML;
 	private static final String APPLICATION_JSON = MediaType.APPLICATION_JSON;
 
+	private static final String LOGGER_NAME = "WS-DB";
+	private static final Logger LOGGER = Logger.getLogger(LOGGER_NAME);
+	
 	@GET
 	@Produces(TEXT_PLAIN)
 	public Response processGET(String body, @Context HttpHeaders headers) {
@@ -86,20 +91,6 @@ public class Hello {
 		return process(text, message, "GET", null, headers);
 	}
 
-
-	public Response process(String text, String message, String method, String body, HttpHeaders headers) {
-	
-		int number = (int) (Math.random() * 2 + 1);
-		
-		String responseText = createResponse(number);
-		
-		DB.insertIntoTableMessage("hello", "200", "Response number: " + number);
-		
-		return Response.status(Response.Status.OK).entity(responseText).build();
-		
-	}
-	
-	
 	@Path("{text}")
 	@POST
 	@Consumes(APPLICATION_JSON)
@@ -123,69 +114,46 @@ public class Hello {
 		return process(text, message, "GET", null, headers);
 	}
 	
-	private String createResponse(int number) {
-		
-		String response = null;
-		
-		if (number == 1) {
-			response = hello1;
-		}
+	public Response process(String text, String message, String method, String body, HttpHeaders headers) {
+			
+		String request = (body != null) ? body.trim() : text.trim();
+
+		LOGGER.info("DB: SQL: '" + request + "'.");
+
+		if ("SELECT".equalsIgnoreCase(request.substring(0, 6))) {
+			
+			List<String[]> list = DB.selectAndReturnAsList(request);
+			
+			if (list != null) {
+			
+				List<String> listOfStrings = new ArrayList<String>();
 				
-		if (number == 2) {
-			response = hello2;
-		}
-		
-		File file = new File("_hello.txt");
-		PrintWriter out = null;
-		try {
-			out = new PrintWriter(file);
-			out.println("Number: " + number);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} finally {
-			if (out != null) {
-				out.close();
-			}
-		}
+				for (String[] string : list) {
+					LOGGER.info("DB: Line: '" + (string == null ? "null" : Arrays.toString(string)) + "'.");
+					listOfStrings.add(string == null ? "null" : Arrays.toString(string));
+				}
 				
-		return response;
-		
-	}
+				String result = Arrays.toString(listOfStrings.toArray());
+				
+				LOGGER.info("DB: Result: '" + result + "'.");
 	
-	private static String hello1 = ""
-			+ "     _____    "		+ "\n"
-			+ "    /     \\   "		+ "\n"
-			+ "    I o o I   "		+ "\n"
-			+ "    I ___ I   "		+ "\n"
-			+ "    \\_____/   "		+ "\n"
-			+ "      /H\\     "		+ "\n"
-			+ "    /#####\\  "		+ "\n"
-			+ "   / I###I \\  "		+ "\n"
-			+ "   I |###| I  "		+ "\n"
-			+ "   I I###I I  "		+ "\n"
-			+ "   A ##### A  "		+ "\n"
-			+ "     HHAHH    "		+ "\n"
-			+ "     HH HH    "		+ "\n"
-			+ "     HH HH    "		+ "\n"
-			+ "     ## ##    "		+ "\n"
-			+ "    ### ###   ";
+				//DB.insertIntoTableMessage("db", "200", "SQL: " + request);
+				return Response.status(Response.Status.OK).entity(result).build();
 			
-	private static String hello2 = ""
-			+ "     _____    "		+ "\n"
-			+ "    /     \\   "		+ "\n"
-			+ "    I x o I   "		+ "\n"
-			+ "    I ___ I   "		+ "\n"
-			+ "    \\__U__/   "		+ "\n"
-			+ "      /H\\     "		+ "\n"
-			+ "\\I/ /#####\\  "		+ "\n"
-			+ " \\_/ I###I \\  "	+ "\n"
-			+ "     |###| I  "		+ "\n"
-			+ "     I###I I  "		+ "\n"
-			+ "     ##### A  "		+ "\n"
-			+ "     HHAHH    "		+ "\n"
-			+ "     HH HH    "		+ "\n"
-			+ "     HH HH    "		+ "\n"
-			+ "     ## ##    "		+ "\n"
-			+ "    ### ###   ";
+			} else {
+				
+				//DB.insertIntoTableMessage("db", "400");
+				return Response.status(Response.Status.BAD_REQUEST).entity("ERROR: Not valid SQL SELECT query.").build();
+
+			}
 			
+		} else {
+			
+			//DB.insertIntoTableMessage("db", "400");
+			return Response.status(Response.Status.BAD_REQUEST).entity("ERROR: Not valid SQL SELECT query.").build();
+			
+		}	
+		
+	}	
+	
 }

@@ -14,6 +14,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 /**
  * Sending back messages with exactly same media format as they were received.
  * Plus: headers (and cookies?).
@@ -93,11 +95,14 @@ public class Echo3 {
 		}
 		
 		if ("GET".equals(method)) {
+			DB.insertIntoTableMessage("echo3", "200");
 			return Response.status(Response.Status.OK).entity(text).build();
 		} else if ("POST".equals(method)) {
+			DB.insertIntoTableMessage("echo3", "200");
 			return Response.status(Response.Status.OK).entity(body).build();
 		} else {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing XML." + "\n").build();
+			DB.insertIntoTableMessage("echo3", "400");
+			return Response.status(Response.Status.BAD_REQUEST).entity("400 NOK > Error in parsing XML." + "\n").build();
 		}
 		
 	}
@@ -144,11 +149,14 @@ public class Echo3 {
 		}
 		
 		if ("GET".equals(method)) {
+			DB.insertIntoTableMessage("echo3", "200");
 			return Response.status(Response.Status.OK).entity(text).build();
 		} else if ("POST".equals(method)) {
+			DB.insertIntoTableMessage("echo3", "200");
 			return Response.status(Response.Status.OK).entity(body).build();
 		} else {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing JSON." + "\n").build();
+			DB.insertIntoTableMessage("echo3", "400");
+			return Response.status(Response.Status.BAD_REQUEST).entity("400 NOK > Error in parsing JSON." + "\n").build();
 		}
 		
 	}

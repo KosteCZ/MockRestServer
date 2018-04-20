@@ -9,6 +9,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 /**
  * Sending back messages with same body, but media format may be different.
  *
@@ -83,11 +85,14 @@ public class Echo {
 		return Response.status(Response.Status.OK).entity("200 OK > Parsing XML was successfull." + "\n" + sb.toString()).build();*/
 		
 		if ("GET".equals(method)) {
+			DB.insertIntoTableMessage("echo", "200");
 			return Response.status(Response.Status.OK).entity(text).build();
 		} else if ("POST".equals(method)) {
+			DB.insertIntoTableMessage("echo", "200");
 			return Response.status(Response.Status.OK).entity(body).build();
 		} else {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing XML." + "\n").build();
+			DB.insertIntoTableMessage("echo", "400");
+			return Response.status(Response.Status.BAD_REQUEST).entity("400 NOK > Error in parsing XML." + "\n").build();
 		}
 		
 	}
@@ -126,11 +131,14 @@ public class Echo {
 		return Response.status(Response.Status.OK).entity("200 OK > Parsing XML was successfull." + "\n" + sb.toString()).build();*/
 		
 		if ("GET".equals(method)) {
+			DB.insertIntoTableMessage("echo", "200");
 			return Response.status(Response.Status.OK).entity(text).build();
 		} else if ("POST".equals(method)) {
+			DB.insertIntoTableMessage("echo", "200");
 			return Response.status(Response.Status.OK).entity(body).build();
 		} else {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing JSON." + "\n").build();
+			DB.insertIntoTableMessage("echo", "400");
+			return Response.status(Response.Status.BAD_REQUEST).entity("400 NOK > Error in parsing JSON." + "\n").build();
 		}
 		
 	}

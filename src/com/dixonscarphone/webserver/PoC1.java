@@ -38,6 +38,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 /**
  * Proof of Concept (PoC): Acertify Project preparation.
  * Calling our SAP PI TestPoC endpoint with specific TLS version through DMZ Load Balancer.
@@ -147,10 +149,13 @@ public class PoC1 {
 		}
 		
 		if ("GET".equals(method)) {
+			DB.insertIntoTableMessage("poc1", "200");
 			return Response.status(responseStatus).entity(response).build();
 		} else if ("POST".equals(method)) {
+			DB.insertIntoTableMessage("poc1", "200");
 			return Response.status(responseStatus).entity(response).build();
 		} else {
+			DB.insertIntoTableMessage("poc1", "500");
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error: Unknown WS method." + "\n").build();
 		}
 		

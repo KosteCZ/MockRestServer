@@ -11,6 +11,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 /**
  * Help service.
  * List of available services (names + description about what they do).
@@ -90,6 +92,8 @@ public class Help {
 	
 		String responseText = createResponse();
 		
+		DB.insertIntoTableMessage("help", "200");
+
 		return Response.status(Response.Status.OK).entity(responseText).build();
 		
 	}
@@ -135,6 +139,7 @@ public class Help {
 		sb.append("ok" + "      - " + "Returns status code 200 OK without any text response." + "\n");
 		sb.append("timeout" + " - " + "Waits specified time and than sends response back." + "\n");
 		sb.append("forward" + " - " + "Forwards message to specified target ('sourceID')." + "\n");
+		sb.append("email" + "   - " + "Sends message content as email to specified target(s)." + "\n");
 		
 		sb.append("\n");
 		sb.append("Available ports:" + "\n");

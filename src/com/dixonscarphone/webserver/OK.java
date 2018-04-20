@@ -12,6 +12,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 @Path("/ok")
 public class OK {
 	
@@ -80,14 +82,6 @@ public class OK {
 		return process(text, message, "GET", null, headers);
 	}
 
-	public Response process(String text, String message, String method, String body, HttpHeaders headers) {
-	
-		//return Response.status(Response.Status.OK).entity("").build();
-		
-		return Response.status(Response.Status.OK).build();
-		
-	}
-		
 	@Path("{text}")
 	@POST
 	@Consumes(APPLICATION_JSON)
@@ -110,5 +104,15 @@ public class OK {
 	public Response processJSONGET(@PathParam("text") String text, @QueryParam("message") String message, @Context HttpHeaders headers) {
 		return process(text, message, "GET", null, headers);
 	}
+	
+	public Response process(String text, String message, String method, String body, HttpHeaders headers) {
+		
+		DB.insertIntoTableMessage("ok", "200");
+		
+		//return Response.status(Response.Status.OK).entity("").build();
+		
+		return Response.status(Response.Status.OK).build();
+		
+	}	
 	
 }

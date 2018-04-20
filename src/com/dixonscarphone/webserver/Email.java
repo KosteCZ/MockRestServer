@@ -32,6 +32,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 @Path("/email")
 public class Email {
 
@@ -69,6 +71,7 @@ public class Email {
 					+ "# Set WS body:" + "\n"
 					+ "<message>";
 			
+			DB.insertIntoTableMessage("email", "500");
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR: " + "Email was not send. " + "\n" + "\n" + "Please follow this guide: " + "\n" + "\n" + guide).build();
 			
 		} else {
@@ -105,6 +108,7 @@ public class Email {
 					+ "\t" + "<" + MAIL_MESSAGE + ">" + "message" + "<\\" + MAIL_MESSAGE + ">" + "\n"
 					+ "<\\email>";
 			
+			DB.insertIntoTableMessage("email", "500");
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR: " + "Email was not send. " + "\n" + "\n" + "Please follow this guide: " + "\n" + "\n" + guide).build();
 			
 		} else {
@@ -184,6 +188,7 @@ public class Email {
 					+ "\t" + "\"" + MAIL_MESSAGE + "\": \"" + "<message>" + "\"" + "\n"
 					+ "}";
 			
+			DB.insertIntoTableMessage("email", "500");
 			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR: " + "Email was not send. " + "\n" + "\n" + "Please follow this guide: " + "\n" + "\n" + guide).build();
 			
 		} else {
@@ -229,12 +234,14 @@ public class Email {
 				+ "Subject: " + subject + "\n"
 				+ "Message: " + message + "\n";
 		
+		String dbText = "From: " + from + "; To: " + (to == null ? "null" : Arrays.toString(to.toArray())) + "; Subject: " + subject;
+		
 		String errorMessage = validateInputs(from, to, message);	
 		if ((errorMessage == null || errorMessage.isEmpty()) && !from.equals("test")) {
 			errorMessage = sendEmail(from, to, cc, subject, message);
 		}
 	
-		return processResponse(errorMessage, text);
+		return processResponse(errorMessage, text, dbText);
 		
 	}
 	
@@ -262,13 +269,15 @@ public class Email {
 		
 	}
 
-	private Response processResponse(String errorMessage, String text) {
+	private Response processResponse(String errorMessage, String text, String dbText) {
 		
 		String output = "Email sucessfully sent." + (text != null ? (" " + text) : "");		
 		
 		if (errorMessage == null || errorMessage.isEmpty()) {
+			DB.insertIntoTableMessage("email", "200", dbText);
 			return Response.status(Response.Status.OK).entity(output).build();
 		} else {
+			DB.insertIntoTableMessage("email", "500");
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR: " + errorMessage + "\n").build();
 		}
 		

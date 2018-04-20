@@ -11,6 +11,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 public class XMLParserHelper extends ParserHelper {
 
 	@Deprecated
@@ -40,10 +42,12 @@ public class XMLParserHelper extends ParserHelper {
 			// IOException | ParserConfigurationException | SAXException
 			//e.printStackTrace();
 			
+			DB.insertIntoTableMessage("xml", "500");
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing XML." + "\n" + sb.toString() + "ERROR: " + e).build();
 			//return sb.toString() + "500 NOK" + "\n" + e;			
 		}
 		
+		DB.insertIntoTableMessage("xml", "200");
 		return Response.status(Response.Status.OK).entity("200 OK > Parsing XML was successfull." + "\n" + sb.toString()).build();
 		//return sb.toString() + "200 OK";
 		
@@ -97,11 +101,13 @@ public class XMLParserHelper extends ParserHelper {
 			// IOException | ParserConfigurationException | SAXException
 			String respExc = printXMLResponse(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.toString());
 			logger.error(sb);
+			DB.insertIntoTableMessage("xml", "500");
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing XML." + "\n" + "\n" + respExc + sb.toString() + "ERROR: " + e).build();	
 		}
 		
 		logger.info(sb);
 		String respOk = printXMLResponse(Response.Status.OK.getStatusCode(), "");
+		DB.insertIntoTableMessage("xml", "200");
 		return Response.status(Response.Status.OK).entity("200 OK > Parsing XML was successfull." + "\n" + "\n" + respOk + sb.toString()).build();
 		
 	}

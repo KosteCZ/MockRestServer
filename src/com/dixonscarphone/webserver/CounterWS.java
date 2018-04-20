@@ -15,6 +15,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.dixonscarphone.webserver.shared.Counter;
+import com.dixonscarphone.webserver.shared.DB;
 
 @Path("/counter")
 public class CounterWS {
@@ -93,8 +94,10 @@ public class CounterWS {
 		LOGGER.log(Level.INFO, "Count: " + output);
 			
 		if (errorMessage == null || errorMessage.isEmpty()) {
+			DB.insertIntoTableMessage("counter", "200", output);
 			return Response.status(Response.Status.OK).entity(output).build();
 		} else {
+			DB.insertIntoTableMessage("counter", "500", output);
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ERROR: " + errorMessage + "\n").build();
 		}
 		

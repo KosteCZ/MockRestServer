@@ -4,6 +4,8 @@ import javax.ws.rs.core.Response;
 
 import org.json.JSONObject;
 
+import com.dixonscarphone.webserver.shared.DB;
+
 public class JSONParserHelper {
 	
 	public static Response parse(String message, String body, String method, StringBuilder sb) {
@@ -21,9 +23,11 @@ public class JSONParserHelper {
 			JSONObject jsonObject = new JSONObject(message /*"{\"name\": \"John\"}"*/);  
 			sb.append(jsonObject + "\n");
 		} catch (Exception e) {
+			DB.insertIntoTableMessage("json", "500");
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing JSON." + "\n" + sb.toString() + "ERROR: " + e).build();	
 		}
 		
+		DB.insertIntoTableMessage("json", "200");
 		return Response.status(Response.Status.OK).entity("200 OK > Parsing JSON was successfull." + "\n" + sb.toString()).build();
 		
 	}
