@@ -58,6 +58,7 @@ public class Forward {
 	private static final String LOGGER_NAME = "WS-Forward";
 	private static final Logger LOGGER = Logger.getLogger(LOGGER_NAME);	
 	
+	private static int statusCode = -1;	
 	
 	@Path("{text}")
 	@POST
@@ -147,6 +148,7 @@ public class Forward {
 		
 		String sourceID = null;
 		String output = null;
+		boolean error = false;
 		
 		try {
 			
@@ -160,25 +162,40 @@ public class Forward {
 		
 		} catch (Exception e) {
 			
+			error = true;
 			LOGGER.log(Level.ERROR, "ERROR: " + e.getMessage());
 			output = "ERROR: " + e.getMessage();
 			
 		}
 		
-		if ("GET".equals(method) || ("POST".equals(method))) {
+		if (!error) {
 			
 			if (sourceID != null) {
-				DB.insertIntoTableMessage("forward", "200", "SourceID: " + sourceID.trim());
+				DB.insertIntoTableMessage("forward", "200", "SourceID: " + sourceID.trim() + "; Response code: " + statusCode + ".");
 			} else {
-				DB.insertIntoTableMessage("forward", "200");
+				DB.insertIntoTableMessage("forward", "200", "SourceID: null; Response code: " + statusCode + ".");
 			}
 			
 			return Response.status(Response.Status.OK).entity(output).build();
 			
 		} else {
 			
-			DB.insertIntoTableMessage("forward", "500");
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("500 NOK > Error in parsing." + "\n").build();
+			if (sourceID == null) {
+				sourceID = "null";
+			}
+			if (output == null) {
+				output = "ERROR: null";
+			}
+			
+			String errorMessage = "SourceID: " + sourceID.trim() + "; " + output + ".";
+			
+			DB.insertIntoTableMessage("forward", "500", errorMessage);
+			
+			if (output == null || output.isEmpty()) {
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unknown internal server error." + "\n").build();
+			} else {
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(output + "\n").build();
+			}
 			
 		}
 		
@@ -186,56 +203,56 @@ public class Forward {
 	
 	private String callReceiver(String sourceID, String message) throws Exception {
 		
-			try {
-				List<List<String>> listOfReceivers = loadReceivers();
-				
-				LOGGER.log(Level.DEBUG, "Receivers file loaded. Start processing...");
-				// Loading receivers from file and determine if there is a match for specified SourceID
-				String receiverFoundInFile = isSourceIDInListOfReceivers(sourceID, listOfReceivers);	
-				LOGGER.log(Level.DEBUG, "Loaded receiver from file: '" + receiverFoundInFile + "'");
-				if (receiverFoundInFile != null) {
-					sourceID = receiverFoundInFile;
-				}
-			} catch (IOException e) {
-				LOGGER.log(Level.ERROR, "ERROR: " + e.getMessage());
-				LOGGER.log(Level.DEBUG, "Continue processing...");
+		try {
+			List<List<String>> listOfReceivers = loadReceivers();
+			
+			LOGGER.log(Level.DEBUG, "Receivers file loaded. Start processing...");
+			// Loading receivers from file and determine if there is a match for specified SourceID
+			String receiverFoundInFile = isSourceIDInListOfReceivers(sourceID, listOfReceivers);	
+			LOGGER.log(Level.DEBUG, "Loaded receiver from file: '" + receiverFoundInFile + "'");
+			if (receiverFoundInFile != null) {
+				sourceID = receiverFoundInFile;
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.ERROR, "ERROR: " + e.getMessage());
+			LOGGER.log(Level.DEBUG, "Continue processing...");
+		}
+		
+		if ("email-nemo".equalsIgnoreCase(sourceID) || "email-test".equalsIgnoreCase(sourceID)) {
+			
+	        String from 			= "BrnoSAP@DixonsCarphoneGroup.com";
+			List<String> to 		= new ArrayList<String>();
+			List<String> cc 		= new ArrayList<String>();
+			String subject 			= "TEST-MockRestServer-WS: Forward";
+			String messagecontents 	= message;
+			
+			if ("email-test".equalsIgnoreCase(sourceID)) {
+				to.add("Jan.Koscak@DixonsCarphone.com");
+			}				
+			if ("email-nemo".equalsIgnoreCase(sourceID)) {
+				from = "PIQAlert@dixonscarphone.com";
+				to.add("Miroslav.Zamecnik@DixonsCarphone.com");
+				to.add("Milan.Safar@DixonsCarphone.com");
+				cc.add("Jan.Koscak@DixonsCarphone.com");
+				cc.add("Tomas.Hanudel@DixonsCarphone.com");
+				subject 			= "Fraudcheck - response (TEST environment)";
+				messagecontents 	= message;
 			}
 			
-			if ("email-nemo".equalsIgnoreCase(sourceID) || "email-test".equalsIgnoreCase(sourceID)) {
-				
-		        String from 			= "BrnoSAP@DixonsCarphoneGroup.com";
-				List<String> to 		= new ArrayList<String>();
-				List<String> cc 		= new ArrayList<String>();
-				String subject 			= "TEST-MockRestServer-WS: Forward";
-				String messagecontents 	= message;
-				
-				if ("email-test".equalsIgnoreCase(sourceID)) {
-					to.add("Jan.Koscak@DixonsCarphone.com");
-				}				
-				if ("email-nemo".equalsIgnoreCase(sourceID)) {
-					from = "PIQAlert@dixonscarphone.com";
-					to.add("Miroslav.Zamecnik@DixonsCarphone.com");
-					to.add("Milan.Safar@DixonsCarphone.com");
-					cc.add("Jan.Koscak@DixonsCarphone.com");
-					cc.add("Tomas.Hanudel@DixonsCarphone.com");
-					subject 			= "Fraudcheck - response (TEST environment)";
-					messagecontents 	= message;
-				}
-				
-				sendEmail(from, to, cc, subject, messagecontents);
-				
-		    	Date dateStart = new Date();	
-				String dateString = DATE_FORMAT.format(dateStart);
+			sendEmail(from, to, cc, subject, messagecontents);
+			
+	    	Date dateStart = new Date();	
+			String dateString = DATE_FORMAT.format(dateStart);
 
-				return "Email successfully sent (" + dateString + ").";
+			return "Email successfully sent (" + dateString + ").";
 
-			} else {
-			
-				CredentialsItem credentialsItem = new CredentialsItem(sourceID, null, null);
-			
-				return useHttpClientPOST(credentialsItem, message);
-			
-			}
+		} else {
+		
+			CredentialsItem credentialsItem = new CredentialsItem(sourceID, null, null);
+		
+			return useHttpClientPOST(credentialsItem, message);
+		
+		}
 		
 	}
 	
@@ -397,7 +414,9 @@ public class Forward {
 	    
 		try {
 
-		    LOGGER.log(Level.INFO, "Response status code: " + response2.getStatusLine());
+		    statusCode = response2.getStatusLine().getStatusCode();
+		    
+			LOGGER.log(Level.INFO, "Response status code: " + statusCode);
 		    
 		    /*System.out.println("# Response:");*/
 			HttpEntity entity2 = response2.getEntity();
@@ -461,6 +480,7 @@ public class Forward {
         session = null;       
     }
 	
+	@SuppressWarnings("resource")
 	public static String convertStreamToString(java.io.InputStream is) {
 	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
 	    return s.hasNext() ? s.next() : "";
