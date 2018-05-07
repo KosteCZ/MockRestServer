@@ -37,4 +37,39 @@
 	    <res-type>javax.sql.DataSource</res-type>
 	    <res-auth>Container</res-auth>
 	</resource-ref>
+	
+	
+	
+    <security-role>
+        <description>Web Service role</description>
+        <role-name>ws</role-name>
+    </security-role>
+ 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>UserRoleSecurity</web-resource-name>
+            <url-pattern>/MockRestServer</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>ws</role-name>
+        </auth-constraint>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+ 
+    <login-config>
+        <auth-method>BASIC</auth-method>
+    </login-config>
+    
+    
+    <filter>
+	    <filter-name>AuthenticationFilter</filter-name>
+	    <filter-class>com.dixonscarphone.webserver.authentication.RestAuthenticationFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AuthenticationFilter</filter-name>
+		<url-pattern>/auth/*</url-pattern>
+	</filter-mapping>
+	
 </web-app>
