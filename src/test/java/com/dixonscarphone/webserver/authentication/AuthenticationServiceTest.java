@@ -1,52 +1,51 @@
 package com.dixonscarphone.webserver.authentication;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 public class AuthenticationServiceTest {
 
 	@Test
-	public void testNoCredentials () {
+	public void testCorrectCredentials () {
 		
-		AuthenticationService authenticationService = new AuthenticationService();
+		Assert.assertEquals(200, callWS("admin:admin"));
 		
-		String credential = null;
+	}
+
+	@Test
+	public void testNoCredentials () {	
 		
-		int authenticationStatus = authenticationService.authenticate(credential);
-		
-		System.out.println("Authentication status: " + authenticationStatus);
-		
-		Assert.assertEquals(401, authenticationStatus);
+		Assert.assertEquals(401, callWS(null));
 		
 	}
 	
 	@Test
 	public void testWrongCredentials () {
 		
-		AuthenticationService authenticationService = new AuthenticationService();
-		
-		String credential = "YTph"; // Wrong credentials: a:a
-		
-		int authenticationStatus = authenticationService.authenticate(credential);
-		
-		System.out.println("Authentication status: " + authenticationStatus);	
-		
-		Assert.assertEquals(403, authenticationStatus);
+		Assert.assertEquals(403, callWS("wrong_username:wrong_password"));
 		
 	}
 	
-	@Test
-	public void testCorrectCredentials () {
+	private int callWS(String plainCredentials) {
+		
+		String encodedCredentials = null;
+		
+		if (plainCredentials != null) {
+		
+			encodedCredentials = Base64.getEncoder().encodeToString(plainCredentials.getBytes(StandardCharsets.UTF_8));
+		
+		}
 		
 		AuthenticationService authenticationService = new AuthenticationService();
 		
-		String credential = "YWRtaW46YWRtaW4="; // Correct credentials: admin:admin
+		int authenticationStatus = authenticationService.authenticate(encodedCredentials);
 		
-		int authenticationStatus = authenticationService.authenticate(credential);
+		System.out.println("Authentication status: " + authenticationStatus);
 		
-		System.out.println("Authentication status: " + authenticationStatus);	
-		
-		Assert.assertEquals(200, authenticationStatus);
+		return authenticationStatus;
 		
 	}
 	

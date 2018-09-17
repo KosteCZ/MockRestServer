@@ -37,6 +37,7 @@ public class RestAuthenticationFilter implements javax.servlet.Filter {
 				if (response instanceof HttpServletResponse) {
 					HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 					httpServletResponse.setStatus(authenticationStatus);
+					httpServletResponse.setHeader("WWW-Authenticate", "Basic realm=\"Accessing protected web service.\"");
 				}
 				
 			}

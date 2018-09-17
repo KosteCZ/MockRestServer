@@ -1,6 +1,6 @@
 package com.dixonscarphone.webserver.authentication;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.StringTokenizer;
 
@@ -36,12 +36,8 @@ public class AuthenticationService {
 			final String encodedUserPassword = credential.replaceFirst("Basic" + " ", "");
 			String usernameAndPassword = null;
 			
-			try {
-				byte[] decodedBytes = Base64.getDecoder().decode(encodedUserPassword);
-				usernameAndPassword = new String(decodedBytes, "UTF-8");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			byte[] decodedBytes = Base64.getDecoder().decode(encodedUserPassword);
+			usernameAndPassword = new String(decodedBytes, StandardCharsets.UTF_8);
 			
 			final StringTokenizer tokenizer = new StringTokenizer(usernameAndPassword, ":");
 			final String username = tokenizer.nextToken();
